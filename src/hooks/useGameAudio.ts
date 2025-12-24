@@ -5,20 +5,48 @@ const characterMusic: Record<number, string> = {
   1: '/audio/run-main.mp3',
   2: '/audio/run-main.mp3',
   3: '/audio/run-main.mp3',
-  4: '/audio/run-char4.mp3', // CID dubbing song
+  4: '/audio/run-char4.mp3',
   5: '/audio/run-main.mp3',
-  6: '/audio/run-char6.mp3', // Tunak Tunak Tun song
+  6: '/audio/run-char6.mp3',
 };
 
 // Death sounds per character
 const characterDeathSound: Record<number, string> = {
-  1: '/audio/death-char1.mp3', // Cid funny dub
-  2: '/audio/death-char2.mp3', // ACP meme
-  3: '/audio/death-char3.mp3', // Bohot kuch gadbad
-  4: '/audio/death-char4.mp3', // ACP meme 2
-  5: '/audio/death-char5.mp3', // Ek gand pe rapta
-  6: '/audio/death-char6.mp3', // Hmmmm Rajaji
+  1: '/audio/death-char1.mp3',
+  2: '/audio/death-char2.mp3',
+  3: '/audio/death-char3.mp3',
+  4: '/audio/death-char4.mp3',
+  5: '/audio/death-char5.mp3',
+  6: '/audio/death-char6.mp3',
 };
+
+// Preload all audio files on module load for faster playback
+const preloadedAudio: Record<string, HTMLAudioElement> = {};
+
+const preloadAudio = () => {
+  // Preload music files
+  Object.values(characterMusic).forEach((path) => {
+    if (!preloadedAudio[path]) {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = path;
+      preloadedAudio[path] = audio;
+    }
+  });
+
+  // Preload death sounds
+  Object.values(characterDeathSound).forEach((path) => {
+    if (!preloadedAudio[path]) {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = path;
+      preloadedAudio[path] = audio;
+    }
+  });
+};
+
+// Start preloading immediately
+preloadAudio();
 
 export const useGameAudio = (characterId: number | null, isPlaying: boolean) => {
   const musicRef = useRef<HTMLAudioElement | null>(null);
@@ -29,7 +57,7 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
     // Cleanup previous audio
     if (musicRef.current) {
       musicRef.current.pause();
-      musicRef.current.src = '';
+      musicRef.current.currentTime = 0;
       musicRef.current = null;
     }
 
@@ -37,27 +65,24 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
 
     const musicPath = characterMusic[characterId];
 
-    // Create new audio element
-    const audio = new Audio(musicPath);
+    // Use preloaded audio or create new one
+    const audio = preloadedAudio[musicPath] 
+      ? preloadedAudio[musicPath].cloneNode(true) as HTMLAudioElement
+      : new Audio(musicPath);
+    
     audio.loop = true;
     audio.volume = 0.5;
     musicRef.current = audio;
 
-    // Play music
-    const playMusic = async () => {
-      try {
-        await audio.play();
-      } catch (error) {
-        console.log('Audio autoplay blocked, waiting for user interaction');
-      }
-    };
-
-    playMusic();
+    // Play music immediately
+    audio.play().catch(() => {
+      // Autoplay blocked, will play on next user interaction
+    });
 
     return () => {
       if (musicRef.current) {
         musicRef.current.pause();
-        musicRef.current.src = '';
+        musicRef.current.currentTime = 0;
         musicRef.current = null;
       }
     };
@@ -68,10 +93,11 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
     if (musicRef.current) {
       musicRef.current.pause();
       musicRef.current.currentTime = 0;
+      musicRef.current = null;
     }
     if (deathSoundRef.current) {
       deathSoundRef.current.pause();
-      deathSoundRef.current.src = '';
+      deathSoundRef.current.currentTime = 0;
       deathSoundRef.current = null;
     }
   }, []);
@@ -86,9 +112,13 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
 
     const deathSoundPath = characterDeathSound[charId];
 
-    // Create and play death sound immediately
-    const deathAudio = new Audio(deathSoundPath);
+    // Use preloaded audio for faster playback
+    const deathAudio = preloadedAudio[deathSoundPath]
+      ? preloadedAudio[deathSoundPath].cloneNode(true) as HTMLAudioElement
+      : new Audio(deathSoundPath);
+    
     deathAudio.volume = 0.7;
+    deathAudio.currentTime = 0;
     deathSoundRef.current = deathAudio;
 
     return new Promise((resolve) => {
@@ -100,7 +130,7 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
         resolve();
       };
 
-      // Play immediately without delay
+      // Play immediately
       deathAudio.play().catch(() => {
         resolve();
       });

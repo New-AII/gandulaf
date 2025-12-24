@@ -44,13 +44,20 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ character, onGameOver, i
   const gameOverRef = useRef(false);
   const backgroundXRef = useRef(0);
 
-  // Load character image
+  // Load character image with preloading
   useEffect(() => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.src = character.image;
-    img.onload = () => {
+    
+    // Set immediately if already cached
+    if (img.complete) {
       characterImageRef.current = img;
-    };
+    } else {
+      img.onload = () => {
+        characterImageRef.current = img;
+      };
+    }
   }, [character]);
 
   // Initialize clouds
