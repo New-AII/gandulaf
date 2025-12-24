@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Character, Player, Pipe, Cloud, GameConfig } from '@/types/game';
 import { useGameLoop } from '@/hooks/useGameLoop';
+import { preloadedImages } from './CharacterSelect';
 
 const CONFIG: GameConfig = {
   virtualWidth: 360,
@@ -44,18 +45,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ character, onGameOver, i
   const gameOverRef = useRef(false);
   const backgroundXRef = useRef(0);
 
-  // Load character image with preloading
+  // Use preloaded character image - instant, no loading
   useEffect(() => {
+    // First check preloaded cache (instant)
+    const cachedImg = preloadedImages.get(character.image);
+    if (cachedImg) {
+      characterImageRef.current = cachedImg;
+      return;
+    }
+    
+    // Fallback: create and load (should rarely happen)
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.src = character.image;
     
-    // Set immediately if already cached
     if (img.complete) {
       characterImageRef.current = img;
+      preloadedImages.set(character.image, img);
     } else {
       img.onload = () => {
         characterImageRef.current = img;
+        preloadedImages.set(character.image, img);
       };
     }
   }, [character]);
