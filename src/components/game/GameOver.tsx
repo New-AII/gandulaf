@@ -1,0 +1,58 @@
+import React from 'react';
+
+interface GameOverProps {
+  score: number;
+  highScore: number;
+  onRestart: () => void;
+}
+
+export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart }) => {
+  const isNewHighScore = score >= highScore && score > 0;
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-foreground/60 backdrop-blur-sm z-10">
+      <div className="bg-card/95 rounded-2xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl border-4 border-primary/30 animate-scale-in">
+        {/* Game Over Title */}
+        <h2 className="font-game text-4xl md:text-5xl text-destructive mb-4 animate-shake">
+          Game Over!
+        </h2>
+
+        {/* Score Display */}
+        <div className="mb-6 space-y-2">
+          <div className="text-2xl font-bengali text-muted-foreground">
+            Score
+          </div>
+          <div className="text-5xl font-game text-primary text-shadow-glow">
+            {score}
+          </div>
+          
+          {isNewHighScore && (
+            <div className="text-lg font-game text-accent animate-bounce-slow">
+              🏆 New High Score! 🏆
+            </div>
+          )}
+
+          {!isNewHighScore && highScore > 0 && (
+            <div className="text-lg font-bengali text-muted-foreground">
+              Best: {highScore}
+            </div>
+          )}
+        </div>
+
+        {/* Restart Button */}
+        <button
+          onClick={onRestart}
+          className="w-full py-4 px-8 bg-primary text-primary-foreground font-game text-xl 
+                     rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all duration-200
+                     hover:shadow-primary/40 hover:shadow-xl animate-pulse-glow"
+        >
+          Play Again
+        </button>
+
+        <p className="mt-4 text-sm text-muted-foreground font-bengali">
+          Tap anywhere or press Space to restart
+        </p>
+      </div>
+    </div>
+  );
+};
