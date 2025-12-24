@@ -11,13 +11,13 @@ const characterMusic: Record<number, string> = {
 };
 
 // Death sounds per character
-const characterDeathSound: Record<number, string | null> = {
+const characterDeathSound: Record<number, string> = {
   1: '/audio/death-char1.mp3', // Cid funny dub
   2: '/audio/death-char2.mp3', // ACP meme
   3: '/audio/death-char3.mp3', // Bohot kuch gadbad
-  4: null,
-  5: null,
-  6: null,
+  4: '/audio/death-char4.mp3', // ACP meme 2
+  5: '/audio/death-char5.mp3', // Ek gand pe rapta
+  6: '/audio/death-char6.mp3', // Hmmmm Rajaji
 };
 
 export const useGameAudio = (characterId: number | null, isPlaying: boolean) => {
@@ -76,28 +76,22 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
     }
   }, []);
 
-  // Play death sound and return a promise that resolves when it ends
+  // Play death sound immediately and return a promise that resolves when it ends
   const playDeathSound = useCallback((charId: number): Promise<void> => {
+    // Stop the running music immediately
+    if (musicRef.current) {
+      musicRef.current.pause();
+      musicRef.current.currentTime = 0;
+    }
+
+    const deathSoundPath = characterDeathSound[charId];
+
+    // Create and play death sound immediately
+    const deathAudio = new Audio(deathSoundPath);
+    deathAudio.volume = 0.7;
+    deathSoundRef.current = deathAudio;
+
     return new Promise((resolve) => {
-      // Stop the running music first
-      if (musicRef.current) {
-        musicRef.current.pause();
-        musicRef.current.currentTime = 0;
-      }
-
-      const deathSoundPath = characterDeathSound[charId];
-      
-      if (!deathSoundPath) {
-        // No death sound, resolve immediately
-        resolve();
-        return;
-      }
-
-      // Create and play death sound
-      const deathAudio = new Audio(deathSoundPath);
-      deathAudio.volume = 0.7;
-      deathSoundRef.current = deathAudio;
-
       deathAudio.onended = () => {
         resolve();
       };
@@ -106,6 +100,7 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
         resolve();
       };
 
+      // Play immediately without delay
       deathAudio.play().catch(() => {
         resolve();
       });

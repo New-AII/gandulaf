@@ -10,8 +10,8 @@ const CONFIG: GameConfig = {
   pipeSpeed: 150,
   pipeSpawnInterval: 1.5,
   pipeWidth: 52,
-  minGapSize: 130,
-  maxGapSize: 170,
+  minGapSize: 180, // Start easier with bigger gap
+  maxGapSize: 220, // Start easier with bigger gap
 };
 
 interface GameCanvasProps {
@@ -177,7 +177,14 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ character, onGameOver, i
     pipeTimerRef.current += dt;
     if (pipeTimerRef.current >= CONFIG.pipeSpawnInterval) {
       pipeTimerRef.current = 0;
-      const gapHeight = CONFIG.minGapSize + Math.random() * (CONFIG.maxGapSize - CONFIG.minGapSize);
+      
+      // Dynamic difficulty: decrease gap size as score increases
+      // Start with bigger gaps (220-180), decrease to minimum (140-120) over time
+      const difficultyProgress = Math.min(scoreRef.current / 20, 1); // Max difficulty at score 20
+      const currentMaxGap = CONFIG.maxGapSize - (difficultyProgress * 80); // 220 -> 140
+      const currentMinGap = CONFIG.minGapSize - (difficultyProgress * 60); // 180 -> 120
+      
+      const gapHeight = currentMinGap + Math.random() * (currentMaxGap - currentMinGap);
       const minGapY = gapHeight / 2 + 50;
       const maxGapY = CONFIG.virtualHeight - gapHeight / 2 - 100;
       const gapY = minGapY + Math.random() * (maxGapY - minGapY);
