@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Character } from '@/types/game';
 
 // Import character images
@@ -18,12 +18,25 @@ export const characters: Character[] = [
   { id: 6, image: char6, name: 'Player 6' },
 ];
 
+// Preload all character images on component mount
+const preloadImages = () => {
+  characters.forEach((char) => {
+    const img = new Image();
+    img.src = char.image;
+  });
+};
+
 interface CharacterSelectProps {
   onSelect: (character: Character) => void;
   highScore: number;
 }
 
 export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, highScore }) => {
+  // Preload images when component mounts
+  useEffect(() => {
+    preloadImages();
+  }, []);
+
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-top to-sky-bottom">
       {/* Decorative clouds */}
