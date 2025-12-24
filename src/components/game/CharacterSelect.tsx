@@ -77,6 +77,11 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, high
       <p className="mt-6 text-muted-foreground font-bengali text-sm text-center">
         Tap a character to start playing!
       </p>
+
+      {/* Creator credit */}
+      <p className="absolute bottom-4 text-xs text-muted-foreground/60 font-bengali">
+        Created by RONY
+      </p>
     </div>
   );
 };
