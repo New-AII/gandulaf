@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Character } from '@/types/game';
 
 // Import character images
@@ -9,6 +9,9 @@ import char4 from '@/assets/char4.jpg';
 import char5 from '@/assets/char5.jpg';
 import char6 from '@/assets/char6.jpg';
 
+// Preloaded image cache - stores actual loaded Image objects
+export const preloadedImages: Map<string, HTMLImageElement> = new Map();
+
 export const characters: Character[] = [
   { id: 1, image: char1, name: 'Player 1' },
   { id: 2, image: char2, name: 'Player 2' },
@@ -18,13 +21,41 @@ export const characters: Character[] = [
   { id: 6, image: char6, name: 'Player 6' },
 ];
 
-// Preload all character images on component mount
-const preloadImages = () => {
-  characters.forEach((char) => {
-    const img = new Image();
-    img.src = char.image;
+// Preload all images immediately when module loads
+const preloadAllImages = (): Promise<void[]> => {
+  const promises = characters.map((char) => {
+    return new Promise<void>((resolve) => {
+      // Check if already cached
+      if (preloadedImages.has(char.image)) {
+        resolve();
+        return;
+      }
+      
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        preloadedImages.set(char.image, img);
+        resolve();
+      };
+      img.onerror = () => {
+        // Still resolve to not block, but log error
+        console.warn(`Failed to preload image: ${char.image}`);
+        resolve();
+      };
+      img.src = char.image;
+      
+      // If already cached by browser, trigger immediately
+      if (img.complete) {
+        preloadedImages.set(char.image, img);
+        resolve();
+      }
+    });
   });
+  return Promise.all(promises);
 };
+
+// Start preloading immediately when module is imported
+preloadAllImages();
 
 interface CharacterSelectProps {
   onSelect: (character: Character) => void;
@@ -32,10 +63,16 @@ interface CharacterSelectProps {
 }
 
 export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, highScore }) => {
-  // Preload images when component mounts
+  const [imagesReady, setImagesReady] = useState(preloadedImages.size === characters.length);
+
+  // Ensure images are loaded before showing
   useEffect(() => {
-    preloadImages();
-  }, []);
+    if (imagesReady) return;
+    
+    preloadAllImages().then(() => {
+      setImagesReady(true);
+    });
+  }, [imagesReady]);
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-top to-sky-bottom">
