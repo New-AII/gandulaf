@@ -79,7 +79,7 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, high
       </p>
 
       {/* Creator credit */}
-      <p className="absolute bottom-4 text-xs text-muted-foreground/60 font-bengali">
+      <p className="absolute bottom-4 text-sm font-bold text-primary font-bengali">
         Created by RONY
       </p>
     </div>
