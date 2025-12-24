@@ -3,6 +3,7 @@ import { GameState, Character } from '@/types/game';
 import { CharacterSelect } from './CharacterSelect';
 import { GameCanvas } from './GameCanvas';
 import { GameOver } from './GameOver';
+import { useGameAudio } from '@/hooks/useGameAudio';
 
 const HIGH_SCORE_KEY = 'gandu-khela-highscore';
 
@@ -11,6 +12,12 @@ export const FlappyGame: React.FC = () => {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+
+  // Audio hook - plays music for characters 1, 2, 3, 5
+  const { stopMusic, playDeathSound } = useGameAudio(
+    selectedCharacter?.id ?? null,
+    gameState === 'playing'
+  );
 
   // Load high score from localStorage
   useEffect(() => {
@@ -37,13 +44,18 @@ export const FlappyGame: React.FC = () => {
   const handleGameOver = useCallback((finalScore: number) => {
     setScore(finalScore);
     setGameState('gameover');
-  }, []);
+    // Stop music and optionally play death sound
+    if (selectedCharacter) {
+      playDeathSound(selectedCharacter.id);
+    }
+  }, [selectedCharacter, playDeathSound]);
 
   const handleRestart = useCallback(() => {
+    stopMusic();
     setGameState('menu');
     setSelectedCharacter(null);
     setScore(0);
-  }, []);
+  }, [stopMusic]);
 
   // Handle restart with keyboard in gameover state
   useEffect(() => {
