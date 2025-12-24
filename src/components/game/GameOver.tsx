@@ -4,9 +4,10 @@ interface GameOverProps {
   score: number;
   highScore: number;
   onRestart: () => void;
+  showScore: boolean;
 }
 
-export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart }) => {
+export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart, showScore }) => {
   const isNewHighScore = score >= highScore && score > 0;
 
   return (
@@ -17,41 +18,57 @@ export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart 
           Game Over!
         </h2>
 
-        {/* Score Display */}
-        <div className="mb-6 space-y-2">
-          <div className="text-2xl font-bengali text-muted-foreground">
-            Score
-          </div>
-          <div className="text-5xl font-game text-primary text-shadow-glow">
-            {score}
-          </div>
-          
-          {isNewHighScore && (
-            <div className="text-lg font-game text-accent animate-bounce-slow">
-              🏆 New High Score! 🏆
+        {showScore ? (
+          <>
+            {/* Score Display - only shown after death sound ends */}
+            <div className="mb-6 space-y-2 animate-fade-in">
+              <div className="text-2xl font-bengali text-muted-foreground">
+                Score
+              </div>
+              <div className="text-5xl font-game text-primary text-shadow-glow">
+                {score}
+              </div>
+              
+              {isNewHighScore && (
+                <div className="text-lg font-game text-accent animate-bounce-slow">
+                  🏆 New High Score! 🏆
+                </div>
+              )}
+
+              {!isNewHighScore && highScore > 0 && (
+                <div className="text-lg font-bengali text-muted-foreground">
+                  Best: {highScore}
+                </div>
+              )}
             </div>
-          )}
 
-          {!isNewHighScore && highScore > 0 && (
-            <div className="text-lg font-bengali text-muted-foreground">
-              Best: {highScore}
+            {/* Restart Button */}
+            <button
+              onClick={onRestart}
+              className="w-full py-4 px-8 bg-primary text-primary-foreground font-game text-xl 
+                         rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all duration-200
+                         hover:shadow-primary/40 hover:shadow-xl animate-pulse-glow"
+            >
+              Play Again
+            </button>
+
+            <p className="mt-4 text-sm text-muted-foreground font-bengali">
+              Tap anywhere or press Space to restart
+            </p>
+          </>
+        ) : (
+          /* Waiting for death sound to finish */
+          <div className="py-8">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+              <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
             </div>
-          )}
-        </div>
-
-        {/* Restart Button */}
-        <button
-          onClick={onRestart}
-          className="w-full py-4 px-8 bg-primary text-primary-foreground font-game text-xl 
-                     rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all duration-200
-                     hover:shadow-primary/40 hover:shadow-xl animate-pulse-glow"
-        >
-          Play Again
-        </button>
-
-        <p className="mt-4 text-sm text-muted-foreground font-bengali">
-          Tap anywhere or press Space to restart
-        </p>
+            <p className="mt-4 text-lg font-bengali text-muted-foreground">
+              Wait for it...
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

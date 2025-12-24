@@ -12,8 +12,9 @@ export const FlappyGame: React.FC = () => {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [showScore, setShowScore] = useState(false); // Controls when to show score
 
-  // Audio hook - plays music for characters 1, 2, 3, 5
+  // Audio hook - plays music for characters
   const { stopMusic, playDeathSound } = useGameAudio(
     selectedCharacter?.id ?? null,
     gameState === 'playing'
@@ -38,16 +39,22 @@ export const FlappyGame: React.FC = () => {
   const handleCharacterSelect = useCallback((character: Character) => {
     setSelectedCharacter(character);
     setScore(0);
+    setShowScore(false);
     setGameState('playing');
   }, []);
 
-  const handleGameOver = useCallback((finalScore: number) => {
+  const handleGameOver = useCallback(async (finalScore: number) => {
     setScore(finalScore);
+    setShowScore(false); // Hide score initially
     setGameState('gameover');
-    // Stop music and optionally play death sound
+    
+    // Play death sound and wait for it to finish
     if (selectedCharacter) {
-      playDeathSound(selectedCharacter.id);
+      await playDeathSound(selectedCharacter.id);
     }
+    
+    // Show score after death sound ends
+    setShowScore(true);
   }, [selectedCharacter, playDeathSound]);
 
   const handleRestart = useCallback(() => {
@@ -55,11 +62,12 @@ export const FlappyGame: React.FC = () => {
     setGameState('menu');
     setSelectedCharacter(null);
     setScore(0);
+    setShowScore(false);
   }, [stopMusic]);
 
-  // Handle restart with keyboard in gameover state
+  // Handle restart with keyboard in gameover state (only after score is shown)
   useEffect(() => {
-    if (gameState !== 'gameover') return;
+    if (gameState !== 'gameover' || !showScore) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'Enter') {
@@ -68,13 +76,11 @@ export const FlappyGame: React.FC = () => {
       }
     };
 
-    const handleTouch = (e: TouchEvent) => {
-      // Slight delay to prevent accidental restart
+    const handleTouch = () => {
       setTimeout(handleRestart, 100);
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    // Add touch listener with delay
     const timer = setTimeout(() => {
       window.addEventListener('touchstart', handleTouch);
     }, 500);
@@ -84,7 +90,7 @@ export const FlappyGame: React.FC = () => {
       window.removeEventListener('touchstart', handleTouch);
       clearTimeout(timer);
     };
-  }, [gameState, handleRestart]);
+  }, [gameState, showScore, handleRestart]);
 
   return (
     <div className="relative w-full h-full overflow-hidden game-container">
@@ -111,6 +117,7 @@ export const FlappyGame: React.FC = () => {
           score={score}
           highScore={highScore}
           onRestart={handleRestart}
+          showScore={showScore}
         />
       )}
     </div>
