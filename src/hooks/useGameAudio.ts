@@ -1,13 +1,13 @@
 import { useRef, useEffect, useCallback } from 'react';
 
 // Audio file paths per character
-const characterMusic: Record<number, string | null> = {
+const characterMusic: Record<number, string> = {
   1: '/audio/run-main.mp3',
   2: '/audio/run-main.mp3',
   3: '/audio/run-main.mp3',
-  4: null, // No music for character 4
+  4: '/audio/run-char4.mp3', // CID dubbing song
   5: '/audio/run-main.mp3',
-  6: null, // No music for character 6
+  6: '/audio/run-char6.mp3', // Tunak Tunak Tun song
 };
 
 export const useGameAudio = (characterId: number | null, isPlaying: boolean) => {
@@ -25,7 +25,6 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
     if (!characterId || !isPlaying) return;
 
     const musicPath = characterMusic[characterId];
-    if (!musicPath) return;
 
     // Create new audio element
     const audio = new Audio(musicPath);
