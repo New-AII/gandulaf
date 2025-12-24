@@ -112,12 +112,13 @@ export const FlappyGame: React.FC = () => {
       )}
 
       {/* Game Over Overlay */}
-      {gameState === 'gameover' && (
+      {gameState === 'gameover' && selectedCharacter && (
         <GameOver
           score={score}
           highScore={highScore}
           onRestart={handleRestart}
           showScore={showScore}
+          characterId={selectedCharacter.id}
         />
       )}
     </div>

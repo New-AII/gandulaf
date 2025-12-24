@@ -1,14 +1,31 @@
 import React from 'react';
+import char1 from '@/assets/char1.jpg';
+import char2 from '@/assets/char2.jpg';
+import char3 from '@/assets/char3.jpg';
+import char4 from '@/assets/char4.jpg';
+import char5 from '@/assets/char5.jpg';
+import char6 from '@/assets/char6.jpg';
+
+const characterImages: Record<number, string> = {
+  1: char1,
+  2: char2,
+  3: char3,
+  4: char4,
+  5: char5,
+  6: char6,
+};
 
 interface GameOverProps {
   score: number;
   highScore: number;
   onRestart: () => void;
   showScore: boolean;
+  characterId: number;
 }
 
-export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart, showScore }) => {
+export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart, showScore, characterId }) => {
   const isNewHighScore = score >= highScore && score > 0;
+  const characterImage = characterImages[characterId];
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-foreground/60 backdrop-blur-sm z-10">
@@ -57,8 +74,15 @@ export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart,
             </p>
           </>
         ) : (
-          /* Waiting for death sound to finish */
-          <div className="py-8">
+          /* Waiting for death sound to finish - show character image */
+          <div className="py-6">
+            <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-primary/50 shadow-lg animate-pulse">
+              <img 
+                src={characterImage} 
+                alt="Selected character" 
+                className="w-full h-full object-cover"
+              />
+            </div>
             <div className="flex items-center justify-center space-x-2">
               <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
               <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
