@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameState, Character } from '@/types/game';
-import { CharacterSelect, characters } from './CharacterSelect';
+import { CharacterSelect, defaultCharacterImages } from './CharacterSelect';
 import { GameCanvas } from './GameCanvas';
 import { GameOver } from './GameOver';
 import { AdminPanel } from './AdminPanel';
@@ -20,13 +20,49 @@ export const FlappyGame: React.FC = () => {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
-  const [gameCharacters, setGameCharacters] = useState<Character[]>(characters);
+  const [gameCharacters, setGameCharacters] = useState<Character[]>([]);
+  const [loadingCharacters, setLoadingCharacters] = useState(true);
 
-  // Audio hook
+  // Audio hook - now passes the full character object
   const { stopMusic, playDeathSound } = useGameAudio(
-    selectedCharacter?.id ?? null,
+    selectedCharacter,
     gameState === 'playing'
   );
+
+  // Load characters from cloud
+  const loadCharacters = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('characters')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        const chars: Character[] = data.map(row => ({
+          id: row.id,
+          // Use local image for defaults, cloud URL for custom
+          image: row.is_default ? (defaultCharacterImages[row.id] || row.image_url) : row.image_url,
+          name: row.name,
+          isDefault: row.is_default,
+          runAudioUrl: row.run_audio_url,
+          deathAudioUrl: row.death_audio_url
+        }));
+        setGameCharacters(chars);
+      }
+    } catch (error) {
+      console.error('Error loading characters:', error);
+      toast.error('Failed to load characters');
+    } finally {
+      setLoadingCharacters(false);
+    }
+  }, []);
+
+  // Load characters on mount
+  useEffect(() => {
+    loadCharacters();
+  }, [loadCharacters]);
 
   // Load high score from localStorage as fallback
   useEffect(() => {
@@ -45,13 +81,13 @@ export const FlappyGame: React.FC = () => {
   }, [score, highScore]);
 
   // Save score to cloud when game ends
-  const saveScoreToCloud = async (characterId: number, characterName: string, finalScore: number) => {
+  const saveScoreToCloud = async (character: Character, finalScore: number) => {
     try {
       // First get current high score for this character
       const { data: existing } = await supabase
         .from('character_scores')
         .select('high_score')
-        .eq('character_id', characterId)
+        .eq('character_id', character.id)
         .maybeSingle();
 
       const currentHigh = existing?.high_score || 0;
@@ -60,8 +96,8 @@ export const FlappyGame: React.FC = () => {
         await supabase
           .from('character_scores')
           .upsert({
-            character_id: characterId,
-            character_name: characterName,
+            character_id: character.id,
+            character_name: character.name,
             high_score: finalScore,
             updated_at: new Date().toISOString()
           }, {
@@ -87,8 +123,8 @@ export const FlappyGame: React.FC = () => {
     
     // Save score to cloud
     if (selectedCharacter) {
-      saveScoreToCloud(selectedCharacter.id, selectedCharacter.name, finalScore);
-      await playDeathSound(selectedCharacter.id);
+      saveScoreToCloud(selectedCharacter, finalScore);
+      await playDeathSound(selectedCharacter);
     }
     
     setShowScore(true);
@@ -110,31 +146,17 @@ export const FlappyGame: React.FC = () => {
     setGameState('admin');
   }, []);
 
-  const handleAddCharacter = useCallback((photo: File, runSong: File | null, deathSound: File | null) => {
-    // For now, create a local character with the uploaded photo
-    const newId = gameCharacters.length + 1;
-    const photoUrl = URL.createObjectURL(photo);
-    
-    const newChar: Character = {
-      id: newId,
-      image: photoUrl,
-      name: `Player ${newId}`
-    };
-    
-    setGameCharacters(prev => [...prev, newChar]);
-    toast.success(`Character ${newId} added!`);
+  const handleAddCharacter = useCallback(() => {
+    // Reload characters from cloud
+    loadCharacters();
     setGameState('admin');
-  }, [gameCharacters]);
+  }, [loadCharacters]);
 
-  const handleDeleteCharacter = useCallback((characterId: number) => {
-    if (gameCharacters.length <= 1) {
-      toast.error('Cannot delete the last character!');
-      return;
-    }
-    
-    setGameCharacters(prev => prev.filter(c => c.id !== characterId));
-    toast.success('Character deleted!');
-  }, [gameCharacters]);
+  const handleDeleteCharacter = useCallback(() => {
+    // Reload characters from cloud
+    loadCharacters();
+    setGameState('admin');
+  }, [loadCharacters]);
 
   // Handle restart with keyboard in gameover state
   useEffect(() => {
@@ -182,6 +204,7 @@ export const FlappyGame: React.FC = () => {
             highScore={highScore}
             onAdminClick={handleAdminClick}
             characters={gameCharacters}
+            loading={loadingCharacters}
           />
           <Leaderboard />
         </>

@@ -1,7 +1,8 @@
 import { useRef, useEffect, useCallback } from 'react';
+import { Character } from '@/types/game';
 
-// Audio file paths per character
-const characterMusic: Record<number, string> = {
+// Default audio file paths for built-in characters
+const defaultCharacterMusic: Record<number, string> = {
   1: '/audio/run-main.mp3',
   2: '/audio/run-main.mp3',
   3: '/audio/run-main.mp3',
@@ -10,8 +11,7 @@ const characterMusic: Record<number, string> = {
   6: '/audio/run-char6.mp3',
 };
 
-// Death sounds per character
-const characterDeathSound: Record<number, string> = {
+const defaultCharacterDeathSound: Record<number, string> = {
   1: '/audio/death-char1.mp3',
   2: '/audio/death-char2.mp3',
   3: '/audio/death-char3.mp3',
@@ -20,12 +20,12 @@ const characterDeathSound: Record<number, string> = {
   6: '/audio/death-char6.mp3',
 };
 
-// Preload all audio files on module load for faster playback
+// Preload all default audio files on module load for faster playback
 const preloadedAudio: Record<string, HTMLAudioElement> = {};
 
 const preloadAudio = () => {
   // Preload music files
-  Object.values(characterMusic).forEach((path) => {
+  Object.values(defaultCharacterMusic).forEach((path) => {
     if (!preloadedAudio[path]) {
       const audio = new Audio();
       audio.preload = 'auto';
@@ -35,7 +35,7 @@ const preloadAudio = () => {
   });
 
   // Preload death sounds
-  Object.values(characterDeathSound).forEach((path) => {
+  Object.values(defaultCharacterDeathSound).forEach((path) => {
     if (!preloadedAudio[path]) {
       const audio = new Audio();
       audio.preload = 'auto';
@@ -48,7 +48,7 @@ const preloadAudio = () => {
 // Start preloading immediately
 preloadAudio();
 
-export const useGameAudio = (characterId: number | null, isPlaying: boolean) => {
+export const useGameAudio = (character: Character | null, isPlaying: boolean) => {
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const deathSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -61,11 +61,12 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
       musicRef.current = null;
     }
 
-    if (!characterId || !isPlaying) return;
+    if (!character || !isPlaying) return;
 
-    const musicPath = characterMusic[characterId];
+    // Use custom run audio URL if available, otherwise use default
+    const musicPath = character.runAudioUrl || defaultCharacterMusic[character.id] || '/audio/run-main.mp3';
 
-    // Use preloaded audio or create new one
+    // Use preloaded audio for default paths, or create new one for custom
     const audio = preloadedAudio[musicPath] 
       ? preloadedAudio[musicPath].cloneNode(true) as HTMLAudioElement
       : new Audio(musicPath);
@@ -86,7 +87,7 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
         musicRef.current = null;
       }
     };
-  }, [characterId, isPlaying]);
+  }, [character, isPlaying]);
 
   // Stop music function
   const stopMusic = useCallback(() => {
@@ -103,16 +104,17 @@ export const useGameAudio = (characterId: number | null, isPlaying: boolean) => 
   }, []);
 
   // Play death sound immediately and return a promise that resolves when it ends
-  const playDeathSound = useCallback((charId: number): Promise<void> => {
+  const playDeathSound = useCallback((char: Character): Promise<void> => {
     // Stop the running music immediately
     if (musicRef.current) {
       musicRef.current.pause();
       musicRef.current.currentTime = 0;
     }
 
-    const deathSoundPath = characterDeathSound[charId];
+    // Use custom death audio URL if available, otherwise use default
+    const deathSoundPath = char.deathAudioUrl || defaultCharacterDeathSound[char.id] || '/audio/death-char1.mp3';
 
-    // Use preloaded audio for faster playback
+    // Use preloaded audio for default paths
     const deathAudio = preloadedAudio[deathSoundPath]
       ? preloadedAudio[deathSoundPath].cloneNode(true) as HTMLAudioElement
       : new Audio(deathSoundPath);
