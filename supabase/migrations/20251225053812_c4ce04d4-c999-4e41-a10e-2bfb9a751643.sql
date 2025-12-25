@@ -1,0 +1,2 @@
+-- Reset the characters table sequence to start after the highest existing ID
+SELECT setval(pg_get_serial_sequence('public.characters', 'id'), COALESCE((SELECT MAX(id) FROM public.characters), 0) + 1, false);
