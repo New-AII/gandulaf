@@ -25,7 +25,6 @@ export const characters: Character[] = [
 const preloadAllImages = (): Promise<void[]> => {
   const promises = characters.map((char) => {
     return new Promise<void>((resolve) => {
-      // Check if already cached
       if (preloadedImages.has(char.image)) {
         resolve();
         return;
@@ -38,13 +37,11 @@ const preloadAllImages = (): Promise<void[]> => {
         resolve();
       };
       img.onerror = () => {
-        // Still resolve to not block, but log error
         console.warn(`Failed to preload image: ${char.image}`);
         resolve();
       };
       img.src = char.image;
       
-      // If already cached by browser, trigger immediately
       if (img.complete) {
         preloadedImages.set(char.image, img);
         resolve();
@@ -60,12 +57,19 @@ preloadAllImages();
 interface CharacterSelectProps {
   onSelect: (character: Character) => void;
   highScore: number;
+  onAdminClick?: () => void;
+  characters?: Character[];
 }
 
-export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, highScore }) => {
+export const CharacterSelect: React.FC<CharacterSelectProps> = ({ 
+  onSelect, 
+  highScore, 
+  onAdminClick,
+  characters: customCharacters 
+}) => {
   const [imagesReady, setImagesReady] = useState(preloadedImages.size === characters.length);
+  const displayCharacters = customCharacters || characters;
 
-  // Ensure images are loaded before showing
   useEffect(() => {
     if (imagesReady) return;
     
@@ -76,6 +80,18 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, high
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-top to-sky-bottom">
+      {/* Admin Button */}
+      {onAdminClick && (
+        <button
+          onClick={onAdminClick}
+          className="absolute top-4 right-4 px-3 py-1.5 text-xs font-game text-muted-foreground/60 
+                     hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200
+                     border border-transparent hover:border-primary/30"
+        >
+          Admin
+        </button>
+      )}
+
       {/* Decorative clouds */}
       <div className="absolute top-[10%] left-[10%] w-16 h-8 bg-white/80 rounded-full blur-sm animate-float" style={{ animationDelay: '0s' }} />
       <div className="absolute top-[15%] right-[15%] w-20 h-10 bg-white/70 rounded-full blur-sm animate-float" style={{ animationDelay: '1s' }} />
@@ -97,8 +113,8 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelect, high
       </div>
 
       {/* Character Grid */}
-      <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-sm w-full">
-        {characters.map((char) => (
+      <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-sm w-full max-h-[50vh] overflow-y-auto">
+        {displayCharacters.map((char) => (
           <button
             key={char.id}
             onClick={() => onSelect(char)}
