@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      characters: {
+        Row: {
+          created_at: string
+          death_audio_url: string | null
+          id: number
+          image_url: string
+          is_default: boolean
+          name: string
+          run_audio_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          death_audio_url?: string | null
+          id?: number
+          image_url: string
+          is_default?: boolean
+          name?: string
+          run_audio_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          death_audio_url?: string | null
+          id?: number
+          image_url?: string
+          is_default?: boolean
+          name?: string
+          run_audio_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

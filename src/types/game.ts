@@ -2,6 +2,9 @@ export interface Character {
   id: number;
   image: string;
   name: string;
+  isDefault?: boolean;
+  runAudioUrl?: string | null;
+  deathAudioUrl?: string | null;
 }
 
 export interface Player {
