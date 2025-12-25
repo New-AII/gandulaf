@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 interface DeleteCharacterProps {
   characters: Character[];
   onBack: () => void;
-  onDelete: () => void;
+  onDelete: (deletedId: number) => void;
 }
 
 export const DeleteCharacter: React.FC<DeleteCharacterProps> = ({ characters, onBack, onDelete }) => {
@@ -29,7 +29,7 @@ export const DeleteCharacter: React.FC<DeleteCharacterProps> = ({ characters, on
         if (error) throw error;
 
         toast.success('Character deleted!');
-        onDelete();
+        onDelete(id);
       } catch (error: any) {
         console.error('Error deleting character:', error);
         toast.error('Failed to delete character');
