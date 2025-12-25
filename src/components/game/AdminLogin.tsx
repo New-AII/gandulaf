@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AdminLoginProps {
@@ -11,49 +9,22 @@ interface AdminLoginProps {
   onBack: () => void;
 }
 
-export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+const ADMIN_PASSWORD = 'rony54321#';
 
-  const handleLogin = async (e: React.FormEvent) => {
+export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
-    try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (authError) throw authError;
-
-      if (data.user) {
-        // Check if user has admin role
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .eq('role', 'admin')
-          .maybeSingle();
-
-        if (roleError) throw roleError;
-
-        if (roleData) {
-          toast.success('Admin access granted!');
-          onSuccess();
-        } else {
-          setError('Access denied. Admin privileges required.');
-          await supabase.auth.signOut();
-        }
-      }
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
-    } finally {
-      setLoading(false);
+    if (password === ADMIN_PASSWORD) {
+      toast.success('Admin access granted!');
+      onSuccess();
+    } else {
+      setError('Wrong password');
+      setPassword('');
     }
   };
 
@@ -67,16 +38,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
 
         <form onSubmit={handleLogin} className="space-y-4">
           <Input
-            type="email"
-            placeholder="Admin Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="bg-background/50"
-          />
-          <Input
             type="password"
-            placeholder="Password"
+            placeholder="Enter Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -87,24 +50,10 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
             <p className="text-destructive text-sm text-center">{error}</p>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Verifying...' : 'Login'}
+          <Button type="submit" className="w-full">
+            Login
           </Button>
         </form>
-
-        <div className="mt-4 text-center">
-          <p className="text-muted-foreground text-xs mb-2">
-            Need an admin account?
-          </p>
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => navigate('/auth')}
-            className="text-primary"
-          >
-            Create Account
-          </Button>
-        </div>
 
         <Button
           onClick={onBack}
