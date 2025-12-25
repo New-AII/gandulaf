@@ -1,31 +1,15 @@
 import React from 'react';
-import char1 from '@/assets/char1.jpg';
-import char2 from '@/assets/char2.jpg';
-import char3 from '@/assets/char3.jpg';
-import char4 from '@/assets/char4.jpg';
-import char5 from '@/assets/char5.jpg';
-import char6 from '@/assets/char6.jpg';
-
-const characterImages: Record<number, string> = {
-  1: char1,
-  2: char2,
-  3: char3,
-  4: char4,
-  5: char5,
-  6: char6,
-};
 
 interface GameOverProps {
   score: number;
   highScore: number;
   onRestart: () => void;
   showScore: boolean;
-  characterId: number;
+  characterImage: string;
 }
 
-export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart, showScore, characterId }) => {
+export const GameOver: React.FC<GameOverProps> = ({ score, highScore, onRestart, showScore, characterImage }) => {
   const isNewHighScore = score >= highScore && score > 0;
-  const characterImage = characterImages[characterId];
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-foreground/60 backdrop-blur-sm z-10">

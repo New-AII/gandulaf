@@ -15,8 +15,7 @@ export const DeleteCharacter: React.FC<DeleteCharacterProps> = ({ characters, on
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Filter to only show custom (non-default) characters
-  const customCharacters = characters.filter(c => !c.isDefault);
+  // Show ALL characters (both default and custom)
 
   const handleDelete = async (id: number) => {
     if (confirmId === id) {
@@ -47,15 +46,14 @@ export const DeleteCharacter: React.FC<DeleteCharacterProps> = ({ characters, on
     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-top to-sky-bottom">
       <h1 className="font-bengali text-2xl font-bold text-foreground mb-6">Delete Character</h1>
       
-      {customCharacters.length === 0 ? (
+      {characters.length === 0 ? (
         <div className="text-center mb-6">
-          <p className="text-muted-foreground mb-2">No custom characters to delete.</p>
-          <p className="text-muted-foreground text-sm">Default characters cannot be deleted.</p>
+          <p className="text-muted-foreground mb-2">No characters to delete.</p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-3 gap-3 max-w-sm w-full mb-6">
-            {customCharacters.map((char) => (
+            {characters.map((char) => (
               <div
                 key={char.id}
                 className={`relative aspect-square rounded-xl overflow-hidden border-4 transition-all

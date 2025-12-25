@@ -97,7 +97,7 @@ export const FlappyGame: React.FC = () => {
           .from('character_scores')
           .upsert({
             character_id: character.id,
-            character_name: character.name,
+            character_name: `Character ${character.id}`,
             high_score: finalScore,
             updated_at: new Date().toISOString()
           }, {
@@ -251,7 +251,7 @@ export const FlappyGame: React.FC = () => {
           highScore={highScore}
           onRestart={handleRestart}
           showScore={showScore}
-          characterId={selectedCharacter.id}
+          characterImage={selectedCharacter.image}
         />
       )}
     </div>
