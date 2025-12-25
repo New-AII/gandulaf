@@ -31,6 +31,7 @@ export const FlappyGame: React.FC = () => {
 
   // Load characters from cloud
   const loadCharacters = useCallback(async () => {
+    setLoadingCharacters(true);
     try {
       const { data, error } = await supabase
         .from('characters')
@@ -152,7 +153,13 @@ export const FlappyGame: React.FC = () => {
     setGameState('admin');
   }, [loadCharacters]);
 
-  const handleDeleteCharacter = useCallback(() => {
+  const handleDeleteCharacter = useCallback((deletedId: number) => {
+    // Remove immediately from local state so it disappears everywhere
+    setGameCharacters((prev) => prev.filter((c) => c.id !== deletedId));
+
+    // Safety: if somehow the deleted character was selected, reset it
+    setSelectedCharacter((prev) => (prev?.id === deletedId ? null : prev));
+
     // Reload characters from cloud
     loadCharacters();
     setGameState('admin');
