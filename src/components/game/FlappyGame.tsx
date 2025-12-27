@@ -99,7 +99,7 @@ export const FlappyGame: React.FC = () => {
           .from('character_scores')
           .upsert({
             character_id: character.id,
-            character_name: `Character ${character.id}`,
+            character_name: character.name,
             high_score: finalScore,
             updated_at: new Date().toISOString()
           }, {
