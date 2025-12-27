@@ -31,7 +31,7 @@ export interface Cloud {
   speed: number;
 }
 
-export type GameState = 'menu' | 'playing' | 'gameover' | 'admin' | 'admin_login' | 'add_char' | 'delete_char';
+export type GameState = 'menu' | 'playing' | 'gameover' | 'admin' | 'admin_login' | 'add_char' | 'delete_char' | 'edit_char';
 
 export interface GameConfig {
   virtualWidth: number;
