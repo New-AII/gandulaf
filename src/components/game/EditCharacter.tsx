@@ -95,10 +95,12 @@ export const EditCharacter: React.FC<EditCharacterProps> = ({ characters, onBack
         }
       }
 
+      const updatedName = name.trim() || `Character ${selectedChar.id}`;
+
       const { error } = await supabase
         .from('characters')
         .update({
-          name: name.trim() || `Character ${selectedChar.id}`,
+          name: updatedName,
           image_url: imageUrl,
           run_audio_url: runAudioUrl,
           death_audio_url: deathAudioUrl
@@ -106,6 +108,12 @@ export const EditCharacter: React.FC<EditCharacterProps> = ({ characters, onBack
         .eq('id', selectedChar.id);
 
       if (error) throw error;
+
+      // Also update the character name in character_scores so leaderboard shows the correct name
+      await supabase
+        .from('character_scores')
+        .update({ character_name: updatedName })
+        .eq('character_id', selectedChar.id);
 
       toast.success('Character updated successfully!');
       onEdit();
