@@ -10,6 +10,7 @@ interface AddCharacterProps {
 }
 
 export const AddCharacter: React.FC<AddCharacterProps> = ({ onBack, onAdd }) => {
+  const [name, setName] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [runSong, setRunSong] = useState<File | null>(null);
   const [deathSound, setDeathSound] = useState<File | null>(null);
@@ -67,10 +68,11 @@ export const AddCharacter: React.FC<AddCharacterProps> = ({ onBack, onAdd }) => 
       }
 
       // Save character to database
+      const characterName = name.trim() || `Player ${Date.now()}`;
       const { error: insertError } = await supabase
         .from('characters')
         .insert({
-          name: `Player ${Date.now()}`,
+          name: characterName,
           image_url: imageUrl,
           run_audio_url: runAudioUrl,
           death_audio_url: deathAudioUrl,
@@ -94,6 +96,21 @@ export const AddCharacter: React.FC<AddCharacterProps> = ({ onBack, onAdd }) => 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-top to-sky-bottom">
       <h1 className="font-bengali text-2xl font-bold text-foreground mb-6">Add Character</h1>
+      
+      {/* Character Name Input */}
+      <div className="w-full max-w-xs mb-6">
+        <label className="block text-sm text-muted-foreground mb-2 text-center">Character Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter character name"
+          disabled={uploading}
+          className="w-full px-4 py-2 rounded-lg border border-primary/30 bg-card/50 
+                     text-foreground placeholder:text-muted-foreground/50
+                     focus:outline-none focus:border-primary transition-colors"
+        />
+      </div>
       
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         {/* Photo */}
