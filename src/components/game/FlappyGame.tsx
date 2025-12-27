@@ -7,6 +7,7 @@ import { AdminPanel } from './AdminPanel';
 import { AdminLogin } from './AdminLogin';
 import { AddCharacter } from './AddCharacter';
 import { DeleteCharacter } from './DeleteCharacter';
+import { EditCharacter } from './EditCharacter';
 import { Leaderboard } from './Leaderboard';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { supabase } from '@/integrations/supabase/client';
@@ -153,14 +154,19 @@ export const FlappyGame: React.FC = () => {
     setGameState('admin');
   }, [loadCharacters]);
 
-  const handleDeleteCharacter = useCallback((deletedId: number) => {
+  const handleDeleteCharacter = useCallback((deletedIds: number[]) => {
     // Remove immediately from local state so it disappears everywhere
-    setGameCharacters((prev) => prev.filter((c) => c.id !== deletedId));
+    setGameCharacters((prev) => prev.filter((c) => !deletedIds.includes(c.id)));
 
     // Safety: if somehow the deleted character was selected, reset it
-    setSelectedCharacter((prev) => (prev?.id === deletedId ? null : prev));
+    setSelectedCharacter((prev) => (prev && deletedIds.includes(prev.id) ? null : prev));
 
     // Reload characters from cloud
+    loadCharacters();
+    setGameState('admin');
+  }, [loadCharacters]);
+
+  const handleEditCharacter = useCallback(() => {
     loadCharacters();
     setGameState('admin');
   }, [loadCharacters]);
@@ -230,6 +236,7 @@ export const FlappyGame: React.FC = () => {
         <AdminPanel
           onAddCharacter={() => setGameState('add_char')}
           onDeleteCharacter={() => setGameState('delete_char')}
+          onEditCharacter={() => setGameState('edit_char')}
           onBack={() => setGameState('menu')}
         />
       )}
@@ -248,6 +255,15 @@ export const FlappyGame: React.FC = () => {
           characters={gameCharacters}
           onBack={() => setGameState('admin')}
           onDelete={handleDeleteCharacter}
+        />
+      )}
+
+      {/* Edit Character */}
+      {gameState === 'edit_char' && (
+        <EditCharacter
+          characters={gameCharacters}
+          onBack={() => setGameState('admin')}
+          onEdit={handleEditCharacter}
         />
       )}
 
