@@ -98,6 +98,9 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
 
       {/* Title */}
       <div className="text-center mb-6 animate-bounce-slow">
+        <p className="font-game text-xl md:text-2xl font-bold text-green-500 mb-1">
+          Tap Tap
+        </p>
         <h1 className="font-bengali text-4xl md:text-5xl font-bold text-foreground text-shadow-game mb-2">
           গান্ডু খেলা
         </h1>
