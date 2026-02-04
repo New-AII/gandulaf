@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Character } from '@/types/game';
 
 // Import character images for defaults
@@ -152,10 +153,18 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
         Tap a character to start playing!
       </p>
 
-      {/* Creator credit */}
-      <p className="absolute bottom-4 text-2xl font-bold text-primary font-bengali">
-        Created by RONY
-      </p>
+      {/* Footer */}
+      <div className="absolute bottom-4 flex flex-col items-center gap-1">
+        <p className="text-2xl font-bold text-primary font-bengali">
+          Created by RONY
+        </p>
+        <Link 
+          to="/privacy-policy" 
+          className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+        >
+          Privacy Policy
+        </Link>
+      </div>
     </div>
   );
 };
